@@ -21,13 +21,23 @@ import { MdDelete } from "react-icons/md";
 
 type FormValues = Omit<RecipeType, "id">;
 
+const initalIngrediants = [
+  {
+    qty: undefined,
+    name: undefined,
+  },
+];
+
 const RecipeFormPage = () => {
+  // react-router-dom
   const { pathname } = useLocation();
   const { id: recipeWantToEditId } = useParams();
   const navigate = useNavigate();
 
-  const btnRef = useRef<HTMLButtonElement>(null);
+  // refs
+  const addIngBtnRef = useRef<HTMLButtonElement>(null);
 
+  // date
   const dateO = new Date();
   const date = `${dateO.getFullYear()}-${dateO.getMonth() + 1 < 10 ? "0" : ""}${
     dateO.getMonth() + 1
@@ -40,12 +50,7 @@ const RecipeFormPage = () => {
       cat: "",
       way: "add sugar to water and mix them well",
 
-      ingrediants: [
-        {
-          qty: undefined,
-          name: undefined,
-        },
-      ],
+      ingrediants: initalIngrediants,
 
       socialMedia: {
         facebook: "",
@@ -56,7 +61,7 @@ const RecipeFormPage = () => {
 
       emails: ["", ""],
 
-      ingCount: 0,
+      ingCount: initalIngrediants.length,
       recipeDate: date as unknown as Date,
     },
   });
@@ -95,6 +100,7 @@ const RecipeFormPage = () => {
     const final = isEditMode()
       ? oldData.map((re) => (re.id === recipeWantToEditId ? data : re))
       : [...oldData, { id: nanoid(), ...data }];
+
     localStorage.setItem("recipes", JSON.stringify(final));
   };
 
@@ -103,6 +109,11 @@ const RecipeFormPage = () => {
   };
 
   // useEffects
+
+  useEffect(() => {
+    setValue("ingCount", ingCount);
+  }, [ingCount, setValue]);
+
   useEffect(() => {
     if (pathname.includes("edit-recipe")) {
       const recipe = (
@@ -123,18 +134,20 @@ const RecipeFormPage = () => {
       }
     }
 
-    if (btnRef.current) {
-      btnRef.current.disabled = true;
+    const addIngBtn = addIngBtnRef.current;
+    if (addIngBtn) addIngBtnRef.current.disabled = true;
 
-      const sub = watch(({ ingrediants }) => {
-        if (ingrediants)
-          btnRef.current!.disabled = !ingrediants.every(
-            (ing) => ing?.name?.length && ing.qty?.length
-          );
-      });
+    // if there is an ingrediant input has no value => then disable "add more" btn
+    const sub = watch(({ ingrediants }) => {
+      if (ingrediants && addIngBtn)
+        addIngBtn!.disabled = !ingrediants.every(
+          (ing) => ing?.name?.length && ing.qty?.length
+        );
+    });
 
-      return () => sub.unsubscribe();
-    }
+    return () => {
+      sub.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -196,43 +209,69 @@ const RecipeFormPage = () => {
             {ingFields.map((field, i) => {
               return (
                 <li className="input-holder" key={field.id}>
-                  <span className="ing-order">{i + 1}</span>
-                  <input
-                    {...register(`ingrediants.${i}.qty`, {
-                      required: "Ingrediant Quantity Is Required",
-                    })}
-                    type="text"
-                    id={`ing-${i}-qty`}
-                    placeholder="ingrediant qty"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        btnRef.current?.click();
+                  <div className="ing-inputs-cell-holder">
+                    <span className="ing-order">{i + 1}</span>
+                    <input
+                      {...register(`ingrediants.${i}.qty`, {
+                        required: "Ingrediant Quantity Is Required",
+                      })}
+                      type="text"
+                      id={`ing-${i}-qty`}
+                      placeholder="ingrediant qty"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addIngBtnRef.current?.click();
+                        }
+                      }}
+                    />
+                    <input
+                      {...register(`ingrediants.${i}.name`, {
+                        required: "Ingrediant Name Is Required",
+                      })}
+                      type="text"
+                      id={`ing-${i}`}
+                      placeholder="ingrediant name"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addIngBtnRef.current?.click();
+                        }
+                      }}
+                    />
+
+                    {i !== 0 && (
+                      <button
+                        className="delete-ing-btn"
+                        onClick={() => remove(i)}
+                      >
+                        <MdDelete />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="ing-inputs-cell-error-messages">
+                    <p
+                      className={
+                        "error-msg " +
+                        (errors[`ingrediants`]?.[i]?.qty?.message
+                          ? "active"
+                          : "")
                       }
-                    }}
-                  />
-                  <input
-                    {...register(`ingrediants.${i}.name`, {
-                      required: "Ingrediant Name Is Required",
-                    })}
-                    type="text"
-                    id={`ing-${i}`}
-                    placeholder="ingrediant name"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        btnRef.current?.click();
-                      }
-                    }}
-                  />
-                  {i !== 0 && (
-                    <button
-                      className="delete-ing-btn"
-                      onClick={() => remove(i)}
                     >
-                      <MdDelete />
-                    </button>
-                  )}
+                      {errors[`ingrediants`]?.[i]?.qty?.message}
+                    </p>
+                    <p
+                      className={
+                        "error-msg " +
+                        (errors[`ingrediants`]?.[i]?.name?.message
+                          ? "active"
+                          : "")
+                      }
+                    >
+                      {errors[`ingrediants`]?.[i]?.name?.message}
+                    </p>
+                  </div>
                 </li>
               );
             })}
@@ -241,14 +280,10 @@ const RecipeFormPage = () => {
           <button
             className="btn"
             type="button"
-            onClick={() => {
-              console.log("clicked");
-
-              append({ qty: "", name: "" });
-            }}
-            ref={btnRef}
+            onClick={() => append({ qty: "", name: "" })}
+            ref={addIngBtnRef}
           >
-            add ingrediant
+            add more
           </button>
         </div>
 
@@ -425,10 +460,10 @@ const RecipeFormPage = () => {
             type="number"
             id="ing-count"
             readOnly
+            defaultValue={initalIngrediants.length}
             {...register("ingCount", {
               valueAsNumber: true,
             })}
-            value={ingCount}
           />
         </div>
 

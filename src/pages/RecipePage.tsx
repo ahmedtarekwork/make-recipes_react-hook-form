@@ -7,6 +7,9 @@ import { useParams } from "react-router-dom";
 // types
 import { RecipeType } from "../types";
 
+// utils
+import { nanoid } from "nanoid";
+
 const RecipePage = () => {
   const { id } = useParams();
 
@@ -40,7 +43,7 @@ const RecipePage = () => {
 
             <ul className="ing-list">
               {ingrediants.map(({ qty, name }) => (
-                <li key={qty + name}>{`${qty} ${name}`}</li>
+                <li key={nanoid()}>{`${qty} ${name}`}</li>
               ))}
             </ul>
 

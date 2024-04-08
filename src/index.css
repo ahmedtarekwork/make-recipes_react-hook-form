@@ -256,14 +256,14 @@ main {
     place-content: center;
   }
 
-  & .input-holder {
+  & .input-holder * {
+    margin: 0;
+  }
+
+  & .ing-inputs-cell-holder {
     display: flex;
     align-items: center;
     gap: 10px;
-
-    & * {
-      margin: 0;
-    }
   }
 }
 
