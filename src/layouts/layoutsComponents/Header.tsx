@@ -1,7 +1,7 @@
-import { LegacyRef, forwardRef } from "react";
+import { Ref, forwardRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-const Header = forwardRef((_, ref: LegacyRef<HTMLDivElement>) => {
+const Header = forwardRef((_, ref: Ref<HTMLElement>) => {
   const { pathname } = useLocation();
 
   return (
