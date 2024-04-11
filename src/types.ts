@@ -1,3 +1,5 @@
+export type DateType = `${number}-${number}-${number}`;
+
 export type RecipeType = {
   id: string;
   name: string;
@@ -19,5 +21,5 @@ export type RecipeType = {
   emails: [string, string];
 
   ingCount: number;
-  recipeDate: Date;
+  recipeDate: DateType;
 };

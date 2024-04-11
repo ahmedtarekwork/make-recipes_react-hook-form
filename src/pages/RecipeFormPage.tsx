@@ -5,17 +5,14 @@ import { useEffect, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 // react-hook-form
-import {
-  SubmitHandler,
-  useForm,
-  useFieldArray,
-  FieldErrors,
-} from "react-hook-form";
+import { SubmitHandler, useForm, useFieldArray } from "react-hook-form";
 
 // types
 import { RecipeType } from "../types";
 // utils
 import { nanoid } from "nanoid";
+import getDateArrenged from "../utils/getDateArrenged";
+
 // icons
 import { MdDelete } from "react-icons/md";
 
@@ -37,12 +34,6 @@ const RecipeFormPage = () => {
   // refs
   const addIngBtnRef = useRef<HTMLButtonElement>(null);
 
-  // date
-  const dateO = new Date();
-  const date = `${dateO.getFullYear()}-${dateO.getMonth() + 1 < 10 ? "0" : ""}${
-    dateO.getMonth() + 1
-  }-${dateO.getDate() < 10 ? "0" : ""}${dateO.getDate()}`;
-
   // react-hook-form
   const form = useForm<FormValues>({
     defaultValues: {
@@ -62,7 +53,8 @@ const RecipeFormPage = () => {
       emails: ["", ""],
 
       ingCount: initalIngrediants.length,
-      recipeDate: date as unknown as Date,
+      // it's string but we need to lie on ts
+      recipeDate: getDateArrenged(new Date().toLocaleDateString()),
     },
   });
   const { register, control, handleSubmit, formState, watch, reset, setValue } =
@@ -104,10 +96,6 @@ const RecipeFormPage = () => {
     localStorage.setItem("recipes", JSON.stringify(final));
   };
 
-  const handleError = (err: FieldErrors<FormValues>) => {
-    console.log("Error Handler fired", err);
-  };
-
   // useEffects
 
   useEffect(() => {
@@ -121,15 +109,16 @@ const RecipeFormPage = () => {
       ).find((re) => re.id === recipeWantToEditId);
 
       if (recipe) {
-        console.log(recipe);
-
         (
           Object.entries(recipe) as unknown as [
             keyof FormValues,
             FormValues[keyof FormValues]
           ][]
         ).forEach(([name, value]) => {
-          setValue(name, value);
+          setValue(
+            name,
+            name === "recipeDate" ? getDateArrenged(value as string) : value
+          );
         });
       }
     }
@@ -145,9 +134,7 @@ const RecipeFormPage = () => {
         );
     });
 
-    return () => {
-      sub.unsubscribe();
-    };
+    return () => sub.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -162,11 +149,7 @@ const RecipeFormPage = () => {
 
   return (
     <>
-      <form
-        autoComplete="off"
-        onSubmit={handleSubmit(submitRecipe, handleError)}
-        noValidate
-      >
+      <form autoComplete="off" onSubmit={handleSubmit(submitRecipe)} noValidate>
         <div className="input-holder">
           <label htmlFor="recipe-name">Recipe Name: </label>
           <input
@@ -305,18 +288,15 @@ const RecipeFormPage = () => {
             <label htmlFor="facebook">facebook: </label>
             <input
               {...register("socialMedia.facebook", {
-                // required: {
-                //   value: false,
-                //   message: "",
-                // },
                 validate: {
                   notFacebookUrl: (val) => {
                     // input isn't required
                     if (val === "") return true;
 
                     return (
-                      /(https:?\/\/)?((www|m).)?facebook.com\/./gi.test(val) ||
-                      "this isn't a facebook page url!"
+                      /(https:?\/\/)?((www|m).)?facebook.com\/\S+/gi.test(
+                        val
+                      ) || "this isn't a facebook page url!"
                     );
                   },
                 },
@@ -343,7 +323,7 @@ const RecipeFormPage = () => {
                     if (val === "") return true;
 
                     return (
-                      /(https?\/\/:)?((www | m).)?instagram.com\/./gi.test(
+                      /(https?\/\/:)?((www | m).)?instagram.com\/\S+/gi.test(
                         val
                       ) || "this isn't an instagram profile url!"
                     );
@@ -371,7 +351,7 @@ const RecipeFormPage = () => {
                   if (val === "") return true;
 
                   return (
-                    /(https?:\/\/)?((www|m).)?youtube.com\/@{1}./gi.test(val) ||
+                    /(https?:\/\/)?((www|m).)?youtube.com\/\S+/gi.test(val) ||
                     "this isn't a youtube profile url!"
                   );
                 },
@@ -397,7 +377,7 @@ const RecipeFormPage = () => {
                   if (val === "") return true;
 
                   return (
-                    /(https?\/\/:)?((www | m).)?(twitter|x).com\/./gi.test(
+                    /(https?\/\/:)?((www | m).)?(twitter|x).com\/\S+/gi.test(
                       val
                     ) || "this isn't a twitter or X profile Url!"
                   );
@@ -473,9 +453,7 @@ const RecipeFormPage = () => {
             type="date"
             id="recipe-date"
             readOnly
-            {...register("recipeDate", {
-              valueAsDate: true,
-            })}
+            {...register("recipeDate")}
           />
         </div>
 

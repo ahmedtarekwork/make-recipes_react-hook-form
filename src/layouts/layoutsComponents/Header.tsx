@@ -1,19 +1,20 @@
-import { forwardRef } from "react";
+import { LegacyRef, forwardRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Header = forwardRef((_, ref: any) => {
+const Header = forwardRef((_, ref: LegacyRef<HTMLDivElement>) => {
   const { pathname } = useLocation();
 
   return (
     <header id="app-header" ref={ref}>
-      <strong>React-Hook-Form practice</strong>
-
-      {pathname !== "/" && (
-        <Link className="white-btn" to="/" relative="path">
-          Go To Home
-        </Link>
-      )}
+      <div className="container">
+        {pathname !== "/" ? (
+          <Link to="/" relative="path">
+            <strong>React-Hook-Form practice</strong>
+          </Link>
+        ) : (
+          <strong>React-Hook-Form practice</strong>
+        )}
+      </div>
     </header>
   );
 });

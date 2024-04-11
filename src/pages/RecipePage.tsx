@@ -2,7 +2,7 @@
 import { CSSProperties } from "react";
 
 // react-router-dom
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 // types
 import { RecipeType } from "../types";
@@ -29,6 +29,7 @@ const RecipePage = () => {
       recipeDate,
       way,
       socialMedia,
+      id,
     } = recipe;
 
     return (
@@ -36,6 +37,13 @@ const RecipePage = () => {
         <h1>{name} Recipe</h1>
         <p>Recipe Category: {cat}</p>
         <p>posted in {new Date(recipeDate).toLocaleDateString()}</p>
+        <Link
+          className="btn edit-recipe-btn-recipe-page"
+          to={`/edit-recipe/${id}`}
+          relative="path"
+        >
+          edit recipe
+        </Link>
 
         <div className="real-recipe-holder">
           <div className="left-side">
@@ -47,7 +55,9 @@ const RecipePage = () => {
               ))}
             </ul>
 
-            <p>ingrediants Count: {ingCount}</p>
+            <p className="single-recipe-ing-count">
+              ingrediants Count: {ingCount}
+            </p>
           </div>
 
           <div className="right-side">
@@ -58,7 +68,7 @@ const RecipePage = () => {
 
         <div className="owner-info">
           <p>
-            post by: <a href={`mailto:${mail}`}>{mail}</a>
+            posted by: <a href={`mailto:${mail}`}>{mail}</a>
           </p>
 
           {Object.values(socialMedia).some((url) => url) && (
@@ -95,7 +105,10 @@ const RecipePage = () => {
                     <li key={site}>
                       <a
                         className="btn social-media-link"
-                        href={url}
+                        target="_blank"
+                        href={
+                          url.startsWith("https://") ? url : "https://" + url
+                        }
                         style={css as CSSProperties}
                       >
                         {site}

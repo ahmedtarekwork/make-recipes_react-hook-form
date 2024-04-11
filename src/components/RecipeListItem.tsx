@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import { RecipeType } from "../types";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 type Props = RecipeType & {
   setRecipes: Dispatch<SetStateAction<RecipeType[]>>;
@@ -13,6 +13,8 @@ const RecipeListItem = ({
   id,
   setRecipes,
 }: Props) => {
+  const navigate = useNavigate();
+
   const handleDelete = () => {
     const recipes: RecipeType[] = JSON.parse(
       localStorage.getItem("recipes") || "[]"
@@ -24,13 +26,28 @@ const RecipeListItem = ({
   };
 
   return (
-    <li className="recipe-list-item">
+    <li
+      onClick={(e) => {
+        if (
+          e.target === e.currentTarget ||
+          (e.target as HTMLElement).tagName.toLowerCase() === "strong"
+        )
+          navigate(`/recipe/${id}`, {
+            relative: "path",
+          });
+      }}
+      className="recipe-list-item"
+    >
       <div className="left-side">
-        <Link to={`/recipe/${id}`} relative="path">
-          <strong>{name}</strong>
-        </Link>
-        <p>
-          by: <a href={"mailto:" + mail}>{mail}</a>
+        <strong>{name}</strong>
+        <p
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+          }}
+        >
+          by: <Link to={`mailto:${mail}`}>{mail}</Link>
         </p>
         <p>
           category: <span>{cat}</span>

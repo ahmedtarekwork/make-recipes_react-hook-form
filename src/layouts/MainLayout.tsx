@@ -30,7 +30,7 @@ const MainLayout = () => {
   return (
     <>
       <Header ref={headerRef} />
-      <main ref={mainRef}>
+      <main className="container" ref={mainRef}>
         <Outlet />
       </main>
       <Footer ref={footerRef} />
